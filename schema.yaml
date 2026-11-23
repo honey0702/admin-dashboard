@@ -1,0 +1,2838 @@
+openapi: 3.0.3
+info:
+  title: Rang Poster Co. — Poster Business Management API
+  version: 1.0.0
+  description: 'REST API powering the Rang Poster Co. stall dashboard: JWT auth, inventory
+    with per-batch costing, atomic sales, expenses, home delivery, dashboard statistics
+    and reports. All monetary values are INR (Decimal).'
+paths:
+  /api/auth/change-password/:
+    post:
+      operationId: auth_change_password_create
+      summary: Change password
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/auth/login/:
+    post:
+      operationId: auth_login_create
+      summary: Login (JWT)
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+              - username
+              - password
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/logout/:
+    post:
+      operationId: auth_logout_create
+      summary: Logout (blacklist refresh token)
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/auth/me/:
+    get:
+      operationId: auth_me_retrieve
+      summary: Current user profile
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: auth_me_update
+      summary: Current user profile
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: auth_me_partial_update
+      summary: Current user profile
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/auth/refresh/:
+    post:
+      operationId: auth_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      summary: Refresh access token
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/auth/register/:
+    post:
+      operationId: auth_register_create
+      summary: Register a staff/owner account (owner only)
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/backup/export/:
+    get:
+      operationId: backup_export_retrieve
+      summary: Export full backup (JSON, frontend-compatible)
+      tags:
+      - Backup
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/backup/import/:
+    post:
+      operationId: backup_import_create
+      summary: Restore backup (JSON). Replaces ALL business data.
+      tags:
+      - Backup
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/categories/:
+    get:
+      operationId: categories_list
+      summary: Poster categories
+      tags:
+      - Settings
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+          description: ''
+    post:
+      operationId: categories_create
+      summary: Poster categories
+      tags:
+      - Settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+  /api/categories/{id}/:
+    get:
+      operationId: categories_retrieve
+      summary: Poster categories
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - Settings
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    patch:
+      operationId: categories_partial_update
+      summary: Poster categories
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - Settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    delete:
+      operationId: categories_destroy
+      summary: Poster categories
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - Settings
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/dashboard/overview/:
+    get:
+      operationId: dashboard_overview_retrieve
+      summary: Overview statistics (real, DB-computed)
+      parameters:
+      - in: query
+        name: from
+        schema:
+          type: string
+        description: YYYY-MM-DD (with to) — custom window
+      - in: query
+        name: range
+        schema:
+          type: string
+        description: 7d | 14d | 30d | 90d | all (default 30d)
+      - in: query
+        name: to
+        schema:
+          type: string
+        description: YYYY-MM-DD (with from) — custom window
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/demo/reset/:
+    post:
+      operationId: demo_reset_create
+      summary: Reset demo data (DEMO_MODE only, owner only)
+      tags:
+      - Demo
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/designs/:
+    get:
+      operationId: designs_list
+      description: Designs (products). Search by code/name/category; filter by category/stock/archived.
+      tags:
+      - Inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Design'
+          description: ''
+    post:
+      operationId: designs_create
+      description: Designs (products). Search by code/name/category; filter by category/stock/archived.
+      tags:
+      - Inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DesignWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DesignWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DesignWriteRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DesignWrite'
+          description: ''
+  /api/designs/{id}/:
+    get:
+      operationId: designs_retrieve
+      description: Designs (products). Search by code/name/category; filter by category/stock/archived.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this design.
+        required: true
+      tags:
+      - Inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Design'
+          description: ''
+    put:
+      operationId: designs_update
+      description: Designs (products). Search by code/name/category; filter by category/stock/archived.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this design.
+        required: true
+      tags:
+      - Inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DesignWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DesignWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DesignWriteRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DesignWrite'
+          description: ''
+    patch:
+      operationId: designs_partial_update
+      description: Designs (products). Search by code/name/category; filter by category/stock/archived.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this design.
+        required: true
+      tags:
+      - Inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDesignWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDesignWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDesignWriteRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DesignWrite'
+          description: ''
+    delete:
+      operationId: designs_destroy
+      description: Designs (products). Search by code/name/category; filter by category/stock/archived.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this design.
+        required: true
+      tags:
+      - Inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/designs/{id}/archive/:
+    post:
+      operationId: designs_archive_create
+      description: Designs (products). Search by code/name/category; filter by category/stock/archived.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this design.
+        required: true
+      tags:
+      - Inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DesignRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DesignRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DesignRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Design'
+          description: ''
+  /api/designs/{id}/batches/:
+    post:
+      operationId: designs_batches_create
+      description: Designs (products). Search by code/name/category; filter by category/stock/archived.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this design.
+        required: true
+      tags:
+      - Inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DesignRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DesignRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DesignRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Design'
+          description: ''
+  /api/designs/{id}/damage/:
+    post:
+      operationId: designs_damage_create
+      description: Designs (products). Search by code/name/category; filter by category/stock/archived.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this design.
+        required: true
+      tags:
+      - Inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DesignRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DesignRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DesignRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Design'
+          description: ''
+  /api/designs/{id}/movements/:
+    get:
+      operationId: designs_movements_retrieve
+      description: Designs (products). Search by code/name/category; filter by category/stock/archived.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this design.
+        required: true
+      tags:
+      - Inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Design'
+          description: ''
+  /api/designs/low-stock/:
+    get:
+      operationId: designs_low_stock_retrieve
+      summary: Low-stock designs
+      tags:
+      - Inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/designs/out-of-stock/:
+    get:
+      operationId: designs_out_of_stock_retrieve
+      summary: Out-of-stock designs
+      tags:
+      - Inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/designs/stats/:
+    get:
+      operationId: designs_stats_retrieve
+      description: Designs (products). Search by code/name/category; filter by category/stock/archived.
+      tags:
+      - Inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Design'
+          description: ''
+  /api/discount-rules/:
+    get:
+      operationId: discount_rules_list
+      summary: Combo discount rules
+      tags:
+      - Settings
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DiscountRule'
+          description: ''
+    post:
+      operationId: discount_rules_create
+      summary: Combo discount rules
+      tags:
+      - Settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiscountRuleRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DiscountRuleRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DiscountRuleRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscountRule'
+          description: ''
+  /api/discount-rules/{id}/:
+    get:
+      operationId: discount_rules_retrieve
+      summary: Combo discount rules
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this discount rule.
+        required: true
+      tags:
+      - Settings
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscountRule'
+          description: ''
+    put:
+      operationId: discount_rules_update
+      summary: Combo discount rules
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this discount rule.
+        required: true
+      tags:
+      - Settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiscountRuleRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DiscountRuleRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DiscountRuleRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscountRule'
+          description: ''
+    patch:
+      operationId: discount_rules_partial_update
+      summary: Combo discount rules
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this discount rule.
+        required: true
+      tags:
+      - Settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDiscountRuleRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDiscountRuleRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDiscountRuleRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscountRule'
+          description: ''
+    delete:
+      operationId: discount_rules_destroy
+      summary: Combo discount rules
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this discount rule.
+        required: true
+      tags:
+      - Settings
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/expense-categories/:
+    get:
+      operationId: expense_categories_list
+      tags:
+      - Expenses
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExpenseCategory'
+          description: ''
+    post:
+      operationId: expense_categories_create
+      tags:
+      - Expenses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpenseCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExpenseCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExpenseCategoryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpenseCategory'
+          description: ''
+  /api/expense-categories/{id}/:
+    get:
+      operationId: expense_categories_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this expense category.
+        required: true
+      tags:
+      - Expenses
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpenseCategory'
+          description: ''
+    put:
+      operationId: expense_categories_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this expense category.
+        required: true
+      tags:
+      - Expenses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpenseCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExpenseCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExpenseCategoryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpenseCategory'
+          description: ''
+    patch:
+      operationId: expense_categories_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this expense category.
+        required: true
+      tags:
+      - Expenses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedExpenseCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedExpenseCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedExpenseCategoryRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpenseCategory'
+          description: ''
+    delete:
+      operationId: expense_categories_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this expense category.
+        required: true
+      tags:
+      - Expenses
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/expenses/:
+    get:
+      operationId: expenses_list
+      tags:
+      - Expenses
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Expense'
+          description: ''
+    post:
+      operationId: expenses_create
+      tags:
+      - Expenses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpenseRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExpenseRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExpenseRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+          description: ''
+  /api/expenses/{id}/:
+    get:
+      operationId: expenses_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this expense.
+        required: true
+      tags:
+      - Expenses
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+          description: ''
+    patch:
+      operationId: expenses_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this expense.
+        required: true
+      tags:
+      - Expenses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedExpenseRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedExpenseRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedExpenseRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+          description: ''
+    delete:
+      operationId: expenses_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this expense.
+        required: true
+      tags:
+      - Expenses
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/expenses/stats/:
+    get:
+      operationId: expenses_stats_retrieve
+      tags:
+      - Expenses
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+          description: ''
+  /api/health/:
+    get:
+      operationId: health_retrieve
+      summary: Health check (public)
+      tags:
+      - Core
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/orders/:
+    get:
+      operationId: orders_list
+      tags:
+      - Delivery
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+          description: ''
+    post:
+      operationId: orders_create
+      tags:
+      - Delivery
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /api/orders/{id}/:
+    get:
+      operationId: orders_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this order.
+        required: true
+      tags:
+      - Delivery
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    patch:
+      operationId: orders_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this order.
+        required: true
+      tags:
+      - Delivery
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /api/orders/{id}/fulfill/:
+    post:
+      operationId: orders_fulfill_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this order.
+        required: true
+      tags:
+      - Delivery
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /api/orders/{id}/history/:
+    get:
+      operationId: orders_history_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this order.
+        required: true
+      tags:
+      - Delivery
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /api/orders/{id}/status/:
+    post:
+      operationId: orders_status_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this order.
+        required: true
+      tags:
+      - Delivery
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /api/orders/waiting-radar/:
+    get:
+      operationId: orders_waiting_radar_retrieve
+      description: Which customers are queued for which out-of-stock / low-stock design.
+      summary: Waiting-for-stock radar
+      tags:
+      - Delivery
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/daily/:
+    get:
+      operationId: reports_daily_retrieve
+      summary: Daily closing sheet
+      tags:
+      - Reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/daily/export/:
+    get:
+      operationId: reports_daily_export_retrieve
+      summary: Daily closing sheet as CSV
+      tags:
+      - Reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/monthly/:
+    get:
+      operationId: reports_monthly_retrieve
+      summary: Monthly report
+      tags:
+      - Reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/summary/:
+    get:
+      operationId: reports_summary_retrieve
+      summary: Custom window roll-up
+      tags:
+      - Reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/sales/:
+    get:
+      operationId: sales_list
+      description: List/create/retrieve sales. Creating validates stock and deducts
+        it atomically.
+      tags:
+      - Sales
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sale'
+          description: ''
+    post:
+      operationId: sales_create
+      description: List/create/retrieve sales. Creating validates stock and deducts
+        it atomically.
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaleRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SaleRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SaleRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+          description: ''
+  /api/sales/{id}/:
+    get:
+      operationId: sales_retrieve
+      description: List/create/retrieve sales. Creating validates stock and deducts
+        it atomically.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this sale.
+        required: true
+      tags:
+      - Sales
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+          description: ''
+  /api/sales/{id}/cancel/:
+    post:
+      operationId: sales_cancel_create
+      description: List/create/retrieve sales. Creating validates stock and deducts
+        it atomically.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this sale.
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaleRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SaleRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SaleRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+          description: ''
+  /api/sales/stats/:
+    get:
+      operationId: sales_stats_retrieve
+      description: List/create/retrieve sales. Creating validates stock and deducts
+        it atomically.
+      tags:
+      - Sales
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+          description: ''
+  /api/sales/summary/:
+    get:
+      operationId: sales_summary_retrieve
+      summary: Sales net total (lightweight)
+      tags:
+      - Sales
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/settings/:
+    get:
+      operationId: settings_retrieve
+      summary: Shop profile (singleton)
+      tags:
+      - Settings
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    patch:
+      operationId: settings_partial_update
+      summary: Shop profile (singleton)
+      tags:
+      - Settings
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+components:
+  schemas:
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 80
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+    CategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        is_active:
+          type: boolean
+      required:
+      - name
+    ChangePasswordRequest:
+      type: object
+      properties:
+        current_password:
+          type: string
+          minLength: 1
+        new_password:
+          type: string
+          minLength: 1
+      required:
+      - current_password
+      - new_password
+    Design:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 160
+        category:
+          type: string
+          readOnly: true
+        description:
+          type: string
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        min_stock:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        avg_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,4})?$
+          readOnly: true
+        unit_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,4})?$
+          readOnly: true
+        stock_value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          readOnly: true
+        damaged_quantity:
+          type: integer
+          readOnly: true
+        notes:
+          type: string
+          maxLength: 255
+        rights:
+          type: string
+          maxLength: 160
+        archived:
+          type: boolean
+        batches:
+          type: array
+          items:
+            $ref: '#/components/schemas/PrintBatch'
+          readOnly: true
+        image_url:
+          type: string
+          readOnly: true
+        is_low_stock:
+          type: boolean
+          readOnly: true
+        is_out_of_stock:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - avg_cost
+      - batches
+      - category
+      - code
+      - created_at
+      - damaged_quantity
+      - id
+      - image_url
+      - is_low_stock
+      - is_out_of_stock
+      - name
+      - price
+      - stock_value
+      - unit_cost
+      - updated_at
+    DesignRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type: string
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        min_stock:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        notes:
+          type: string
+          maxLength: 255
+        rights:
+          type: string
+          maxLength: 160
+        archived:
+          type: boolean
+      required:
+      - name
+      - price
+    DesignWrite:
+      type: object
+      description: Create/update a design. Accepts category name; price/qty validated.
+      properties:
+        name:
+          type: string
+          maxLength: 160
+        description:
+          type: string
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        min_stock:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        notes:
+          type: string
+          maxLength: 255
+        rights:
+          type: string
+          maxLength: 160
+        image:
+          type: string
+          format: uri
+          nullable: true
+      required:
+      - name
+      - price
+    DesignWriteRequest:
+      type: object
+      description: Create/update a design. Accepts category name; price/qty validated.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        category:
+          type: string
+          writeOnly: true
+          minLength: 1
+        description:
+          type: string
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        min_stock:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        notes:
+          type: string
+          maxLength: 255
+        rights:
+          type: string
+          maxLength: 160
+        image:
+          type: string
+          format: binary
+          nullable: true
+        initial_copies:
+          type: integer
+          minimum: 0
+          writeOnly: true
+          default: 0
+        print_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          writeOnly: true
+        sleeve_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          writeOnly: true
+      required:
+      - category
+      - name
+      - price
+    DiscountRule:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        min_qty:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        save_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        enabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - min_qty
+      - save_amount
+    DiscountRuleRequest:
+      type: object
+      properties:
+        min_qty:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        save_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        enabled:
+          type: boolean
+      required:
+      - min_qty
+      - save_amount
+    Expense:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          maxLength: 160
+        description:
+          type: string
+        category:
+          type: string
+          maxLength: 80
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        date:
+          type: string
+          format: date-time
+        mode:
+          $ref: '#/components/schemas/ModeEnum'
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+        note:
+          type: string
+          maxLength: 255
+        receipt:
+          type: string
+          format: uri
+          nullable: true
+        receipt_url:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - amount
+      - category
+      - code
+      - created_at
+      - date
+      - id
+      - receipt_url
+      - title
+      - updated_at
+    ExpenseCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 80
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+    ExpenseCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        is_active:
+          type: boolean
+      required:
+      - name
+    ExpenseRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type: string
+        category:
+          type: string
+          minLength: 1
+          maxLength: 80
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        date:
+          type: string
+          format: date-time
+        mode:
+          $ref: '#/components/schemas/ModeEnum'
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+        note:
+          type: string
+          maxLength: 255
+        receipt:
+          type: string
+          format: binary
+          nullable: true
+      required:
+      - amount
+      - category
+      - date
+      - title
+    KindEnum:
+      enum:
+      - one-time
+      - recurring
+      type: string
+      description: |-
+        * `one-time` - One-time
+        * `recurring` - Recurring
+    ModeEnum:
+      enum:
+      - Cash
+      - UPI
+      - Card
+      - Bank
+      type: string
+      description: |-
+        * `Cash` - Cash
+        * `UPI` - UPI
+        * `Card` - Card
+        * `Bank` - Bank
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        number:
+          type: string
+          readOnly: true
+        customer:
+          type: string
+          readOnly: true
+        customer_name:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+          maxLength: 255
+        area:
+          type: string
+          maxLength: 80
+        city:
+          type: string
+          maxLength: 80
+        pin:
+          type: string
+          maxLength: 10
+        method:
+          type: string
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/StatusEedEnum'
+        expected_date:
+          type: string
+          format: date
+          nullable: true
+        dispatched_at:
+          type: string
+          format: date-time
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+        payment:
+          type: string
+          readOnly: true
+        payment_mode:
+          $ref: '#/components/schemas/PaymentModeEnum'
+        payment_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        payment_status:
+          $ref: '#/components/schemas/PaymentStatusEnum'
+        note:
+          type: string
+          maxLength: 255
+        linked_sale:
+          type: string
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          readOnly: true
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderStatusHistory'
+          readOnly: true
+        assigned_to:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - customer
+      - customer_name
+      - history
+      - id
+      - items
+      - linked_sale
+      - method
+      - number
+      - payment
+      - phone
+      - updated_at
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        design_id:
+          type: string
+          readOnly: true
+        design_code:
+          type: string
+          maxLength: 12
+        name:
+          type: string
+          maxLength: 160
+        qty:
+          type: integer
+          maximum: 4294967295
+          minimum: 1
+          format: int64
+      required:
+      - design_code
+      - design_id
+      - id
+      - name
+      - qty
+    OrderItemRequest:
+      type: object
+      properties:
+        design_code:
+          type: string
+          minLength: 1
+          maxLength: 12
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        qty:
+          type: integer
+          maximum: 4294967295
+          minimum: 1
+          format: int64
+      required:
+      - design_code
+      - name
+      - qty
+    OrderRequest:
+      type: object
+      properties:
+        customer_name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        phone:
+          type: string
+          minLength: 1
+          maxLength: 20
+        address:
+          type: string
+          maxLength: 255
+        area:
+          type: string
+          maxLength: 80
+        city:
+          type: string
+          minLength: 1
+          maxLength: 80
+        pin:
+          type: string
+          maxLength: 10
+        status:
+          $ref: '#/components/schemas/StatusEedEnum'
+        expected_date:
+          type: string
+          format: date
+          nullable: true
+        dispatched_at:
+          type: string
+          format: date-time
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+        payment_mode:
+          $ref: '#/components/schemas/PaymentModeEnum'
+        payment_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        payment_status:
+          $ref: '#/components/schemas/PaymentStatusEnum'
+        note:
+          type: string
+          maxLength: 255
+        assigned_to:
+          type: integer
+          nullable: true
+      required:
+      - customer_name
+      - phone
+    OrderStatusHistory:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/StatusEedEnum'
+        at:
+          type: string
+          format: date-time
+          readOnly: true
+        by:
+          type: string
+          readOnly: true
+        note:
+          type: string
+          maxLength: 255
+      required:
+      - at
+      - by
+      - id
+      - status
+    OrderStatusHistoryRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/StatusEedEnum'
+        note:
+          type: string
+          maxLength: 255
+      required:
+      - status
+    PatchedCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        is_active:
+          type: boolean
+    PatchedDesignWriteRequest:
+      type: object
+      description: Create/update a design. Accepts category name; price/qty validated.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        category:
+          type: string
+          writeOnly: true
+          minLength: 1
+        description:
+          type: string
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        min_stock:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        notes:
+          type: string
+          maxLength: 255
+        rights:
+          type: string
+          maxLength: 160
+        image:
+          type: string
+          format: binary
+          nullable: true
+        initial_copies:
+          type: integer
+          minimum: 0
+          writeOnly: true
+          default: 0
+        print_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          writeOnly: true
+        sleeve_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          writeOnly: true
+    PatchedDiscountRuleRequest:
+      type: object
+      properties:
+        min_qty:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        save_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        enabled:
+          type: boolean
+    PatchedExpenseCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        is_active:
+          type: boolean
+    PatchedExpenseRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type: string
+        category:
+          type: string
+          minLength: 1
+          maxLength: 80
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        date:
+          type: string
+          format: date-time
+        mode:
+          $ref: '#/components/schemas/ModeEnum'
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+        note:
+          type: string
+          maxLength: 255
+        receipt:
+          type: string
+          format: binary
+          nullable: true
+    PatchedOrderRequest:
+      type: object
+      properties:
+        customer_name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        phone:
+          type: string
+          minLength: 1
+          maxLength: 20
+        address:
+          type: string
+          maxLength: 255
+        area:
+          type: string
+          maxLength: 80
+        city:
+          type: string
+          minLength: 1
+          maxLength: 80
+        pin:
+          type: string
+          maxLength: 10
+        status:
+          $ref: '#/components/schemas/StatusEedEnum'
+        expected_date:
+          type: string
+          format: date
+          nullable: true
+        dispatched_at:
+          type: string
+          format: date-time
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+        payment_mode:
+          $ref: '#/components/schemas/PaymentModeEnum'
+        payment_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        payment_status:
+          $ref: '#/components/schemas/PaymentStatusEnum'
+        note:
+          type: string
+          maxLength: 255
+        assigned_to:
+          type: integer
+          nullable: true
+    PatchedUserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        email:
+          title: Email address
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        phone:
+          type: string
+          maxLength: 20
+    PaymentEnum:
+      enum:
+      - Cash
+      - UPI
+      - Card
+      - Bank
+      - Other
+      type: string
+      description: |-
+        * `Cash` - Cash
+        * `UPI` - UPI
+        * `Card` - Card
+        * `Bank` - Bank
+        * `Other` - Other
+    PaymentModeEnum:
+      enum:
+      - Cash
+      - UPI
+      - Card
+      - Bank
+      - Other
+      type: string
+      description: |-
+        * `Cash` - Cash
+        * `UPI` - UPI
+        * `Card` - Card
+        * `Bank` - Bank
+        * `Other` - Other
+    PaymentStatusEnum:
+      enum:
+      - paid
+      - unpaid
+      type: string
+      description: |-
+        * `paid` - Paid
+        * `unpaid` - Unpaid
+    PrintBatch:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        design:
+          type: string
+          readOnly: true
+        date:
+          type: string
+          format: date
+        copies:
+          type: integer
+          maximum: 4294967295
+          minimum: 1
+          format: int64
+        print_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        sleeve_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        unit_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,4})?$
+          readOnly: true
+        total_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          readOnly: true
+        note:
+          type: string
+          maxLength: 120
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - code
+      - copies
+      - created_at
+      - date
+      - design
+      - id
+      - print_cost
+      - sleeve_cost
+      - total_cost
+      - unit_cost
+    PrintBatchRequest:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        copies:
+          type: integer
+          maximum: 4294967295
+          minimum: 1
+          format: int64
+        print_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        sleeve_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        note:
+          type: string
+          maxLength: 120
+      required:
+      - copies
+      - date
+      - print_cost
+      - sleeve_cost
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        email:
+          title: Email address
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        phone:
+          type: string
+          maxLength: 20
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RegisterRoleEnum'
+          default: staff
+      required:
+      - password
+      - username
+    RegisterRoleEnum:
+      enum:
+      - owner
+      - staff
+      type: string
+      description: |-
+        * `owner` - owner
+        * `staff` - staff
+    Sale:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        number:
+          type: string
+          readOnly: true
+        date:
+          type: string
+          format: date-time
+        gross:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        discount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        net:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        payment:
+          $ref: '#/components/schemas/PaymentEnum'
+        status:
+          $ref: '#/components/schemas/SaleStatusEnum'
+        cancel_reason:
+          type: string
+          maxLength: 255
+        note:
+          type: string
+          maxLength: 255
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleItem'
+          readOnly: true
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleItem'
+          readOnly: true
+        poster_count:
+          type: string
+          readOnly: true
+        cogs:
+          type: string
+          readOnly: true
+        gross_profit:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - cogs
+      - created_at
+      - date
+      - gross
+      - gross_profit
+      - id
+      - items
+      - lines
+      - net
+      - number
+      - poster_count
+      - total
+      - updated_at
+    SaleItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        design_id:
+          type: string
+          readOnly: true
+        design_code:
+          type: string
+          maxLength: 12
+        name:
+          type: string
+          maxLength: 160
+        category:
+          type: string
+          maxLength: 80
+        qty:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        unit_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,4})?$
+        line_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+      required:
+      - category
+      - design_code
+      - design_id
+      - id
+      - line_total
+      - name
+      - qty
+      - unit_cost
+      - unit_price
+    SaleItemRequest:
+      type: object
+      properties:
+        design_code:
+          type: string
+          minLength: 1
+          maxLength: 12
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        category:
+          type: string
+          minLength: 1
+          maxLength: 80
+        qty:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        unit_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,4})?$
+        line_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+      required:
+      - category
+      - design_code
+      - line_total
+      - name
+      - qty
+      - unit_cost
+      - unit_price
+    SaleRequest:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+        gross:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        discount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        payment:
+          $ref: '#/components/schemas/PaymentEnum'
+        status:
+          $ref: '#/components/schemas/SaleStatusEnum'
+        cancel_reason:
+          type: string
+          maxLength: 255
+        note:
+          type: string
+          maxLength: 255
+      required:
+      - date
+      - gross
+      - total
+    SaleStatusEnum:
+      enum:
+      - completed
+      - cancelled
+      type: string
+      description: |-
+        * `completed` - Completed
+        * `cancelled` - Cancelled
+    StatusEedEnum:
+      enum:
+      - request-received
+      - waiting-stock
+      - ready-pickup
+      - out-for-delivery
+      - delivered
+      - not-delivered
+      - cancelled
+      type: string
+      description: |-
+        * `request-received` - Request Received
+        * `waiting-stock` - Waiting for Stock
+        * `ready-pickup` - Ready for Pickup
+        * `out-for-delivery` - Out for Delivery
+        * `delivered` - Delivered
+        * `not-delivered` - Not Delivered
+        * `cancelled` - Cancelled
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        email:
+          title: Email address
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        phone:
+          type: string
+          maxLength: 20
+        role:
+          allOf:
+          - $ref: '#/components/schemas/UserRoleEnum'
+          readOnly: true
+        is_owner:
+          type: boolean
+          readOnly: true
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - date_joined
+      - id
+      - is_owner
+      - role
+      - username
+    UserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        email:
+          title: Email address
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        phone:
+          type: string
+          maxLength: 20
+      required:
+      - username
+    UserRoleEnum:
+      enum:
+      - owner
+      - staff
+      type: string
+      description: |-
+        * `owner` - Owner
+        * `staff` - Staff
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
