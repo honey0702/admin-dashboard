@@ -37,6 +37,8 @@ python manage.py test sales delivery
 
 For disposable demo data only, `python manage.py seed_demo` **deletes and replaces existing business data** and creates a known demo owner account. Never run it against real data. The demo reset API is also destructive: set `DEMO_MODE=False` outside disposable local environments. The sample `.env.example` is development-only; change the secret, disable debug, configure allowed hosts, CORS, HTTPS, backups and production serving, and perform a security review before deployment.
 
+To get a richer dataset for manual testing, run `python manage.py seed_test_data` **after** `seed_demo` (it refuses to run twice on the same database). It layers on ~115 extra sales across the last 90 days (combo discounts, mixed Cash/UPI/Other payments, 4 cancellations), 18 more expenses, 10 home-delivery orders in every pipeline status (including delivered orders that create real linked sales), reprint batches, damage entries, and pushes a few designs to sold-out/low so the alerts and waiting-for-stock radar fire. All rows go through the same service functions as the REST API, so the stock ledger and COGS snapshots stay consistent.
+
 ## Frontend connection
 
 ```sh
