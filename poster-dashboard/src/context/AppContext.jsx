@@ -1,16 +1,21 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { apiFetch, api } from '../lib/api';
 import { suggestedDiscount } from '../lib/finance';
+import { seedState } from '../data/seed';
 
 const AppContext = createContext(null);
 const tokenKey = 'rang-poster-co:token';
 const refreshKey = 'rang-poster-co:refresh';
+const demoKey = 'rang-poster-co:v1';
+// VITE_DEMO_MODE=true builds a standalone, fully offline preview: seed data in
+// localStorage, no backend, no login. Never set in normal dev/prod builds.
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 const initial = {version:1, designs:[], sales:[], expenses:[], orders:[], rules:[], categories:[], settings:{}};
 const dateOnly = d => d ? String(d).slice(0,10) : null;
 
 export function AppProvider({ children }) {
   const [state, setState] = useState(initial);
-  const [signedIn, setSignedIn] = useState(() => !!localStorage.getItem(tokenKey));
+  const [signedIn, setSignedIn] = useState(() => DEMO_MODE || !!localStorage.getItem(tokenKey));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [toasts, setToasts] = useState([]);
@@ -23,12 +28,25 @@ export function AppProvider({ children }) {
   }, [dismissToast]);
 
   const reload = useCallback(async () => {
+    if (DEMO_MODE) {
+      // Offline standalone build: restore the local snapshot, or seed fresh demo data.
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(demoKey) || 'null'); } catch { saved = null; }
+      setState(saved && Array.isArray(saved.designs) && saved.designs.length ? { ...initial, ...saved } : seedState());
+      return;
+    }
     const [snapshot, designs, expenseCategories] = await Promise.all([apiFetch('/backup/export/'), api.inventory.list(), apiFetch('/expense-categories/')]);
     snapshot.expenseCategories = expenseCategories.filter(c => c.is_active).map(c => c.name);
     const stock = new Map(designs.map(d => [d.id, d]));
     snapshot.designs = snapshot.designs.map(d => ({...d, quantity:stock.get(d.id)?.quantity, avgCost:stock.get(d.id)?.avg_cost}));
     setState(snapshot);
   }, []);
+  // Offline demo mode persists to localStorage so the standalone file behaves like the app.
+  useEffect(() => {
+    if (DEMO_MODE && state.designs.length) {
+      try { localStorage.setItem(demoKey, JSON.stringify(state)); } catch { /* storage full/blocked — ignore */ }
+    }
+  }, [state]);
   useEffect(() => {
     const expire = () => {setSignedIn(false); setState(initial); setError('Session expired. Please sign in again.');};
     window.addEventListener('session-expired', expire);
@@ -45,11 +63,16 @@ export function AppProvider({ children }) {
     catch(e) {setError(e.message); setLoading(false);}
   };
   const logout = async () => {
+    if (DEMO_MODE) return; // standalone preview stays signed in
     try { await api.auth.logout(localStorage.getItem(refreshKey)); } catch { /* clear local session regardless */ }
     localStorage.removeItem(tokenKey); localStorage.removeItem(refreshKey); setSignedIn(false); setState(initial);
   };
   // Return null on errors; callers must not report success when no value was returned.
   const mutate = useCallback(async (fn) => {
+    if (DEMO_MODE) {
+      pushToast('warning', 'Read-only preview', 'This standalone build runs on demo data — connect the backend to save changes.');
+      return null;
+    }
     let result;
     try { result = await fn(); }
     catch (e) { pushToast('warning', 'Could not save', e.message); return null; }

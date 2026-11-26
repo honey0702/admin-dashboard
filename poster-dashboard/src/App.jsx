@@ -11,7 +11,6 @@ import NewSale from './pages/NewSale';
 import HomeDelivery from './pages/HomeDelivery';
 import Expenses from './pages/Expenses';
 import DailySummary from './pages/DailySummary';
-import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
 
 /** Gentle page transition — fade + 10px rise, ~250ms, reduced-motion aware. */
@@ -41,7 +40,6 @@ function AnimatedRoutes() {
         <Route path="/home-delivery" element={<PageTransition><HomeDelivery /></PageTransition>} />
         <Route path="/expenses" element={<PageTransition><Expenses /></PageTransition>} />
         <Route path="/daily-summary" element={<PageTransition><DailySummary /></PageTransition>} />
-        <Route path="/analytics" element={<PageTransition><Analytics /></PageTransition>} />
         <Route path="/settings" element={<PageTransition><Settings /></PageTransition>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

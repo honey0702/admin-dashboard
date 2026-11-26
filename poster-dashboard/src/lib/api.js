@@ -1,9 +1,11 @@
 /** JWT API client. */
 
 const BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+// VITE_DEMO_MODE=true produces a fully offline build (seed data, no backend, no login).
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 
 export const API_BASE_URL = BASE;
-export const isApiConfigured = Boolean(BASE);
+export const isApiConfigured = !DEMO_MODE && Boolean(BASE);
 export const apiMode = isApiConfigured ? 'live' : 'demo';
 
 export class ApiError extends Error {
@@ -119,8 +121,5 @@ export const api = {
   reports: {
     daily: (date) => apiFetch('/reports/daily/', { params: { date } }),
     summary: (from, to) => apiFetch('/reports/summary/', { params: { from, to } }),
-  },
-  analytics: {
-    overview: (range) => apiFetch('/dashboard/overview/', { params: { range } }),
   },
 };

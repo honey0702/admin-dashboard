@@ -18,7 +18,6 @@ const TITLES = {
   '/home-delivery': 'Home Delivery',
   '/expenses': 'Expenses',
   '/daily-summary': 'Daily Summary',
-  '/analytics': 'Analytics',
   '/settings': 'Settings',
 };
 

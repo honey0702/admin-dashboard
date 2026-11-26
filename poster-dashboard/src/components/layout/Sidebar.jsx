@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Boxes, ReceiptText, Truck, Wallet, CalendarDays, BarChart3, Settings,
+  LayoutDashboard, Boxes, ReceiptText, Truck, Wallet, CalendarDays, Settings,
   PanelLeftClose, PanelLeftOpen, HardDrive, Target, X,
 } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
@@ -18,7 +18,6 @@ const NAV = [
   { to: '/home-delivery', label: 'Home Delivery', icon: Truck, badge: 'orders' },
   { to: '/expenses', label: 'Expenses', icon: Wallet },
   { to: '/daily-summary', label: 'Daily Summary', icon: CalendarDays },
-  { to: '/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
