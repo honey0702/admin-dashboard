@@ -77,7 +77,7 @@ Base URL `http://localhost:8000/api/`. Except health, login and refresh, endpoin
 | GET | `/expenses/stats/` | Expense statistics |
 | GET, POST | `/expense-categories/` | List and create categories |
 | GET, PATCH, DELETE | `/expense-categories/{id}/` | Category management |
-| GET, POST | `/orders/` | List/create orders |
+| GET, POST | `/orders/` | List/create orders. Create validates customer fields: name letters/spaces only, phone = 10-digit mobile with optional +91 (stored as `+91XXXXXXXXXX`), PIN = 6 digits starting 1–8, address required |
 | GET, PATCH | `/orders/{number}/` | Order detail and changes |
 | POST | `/orders/{number}/status/`, `/fulfill/` | Status transition, record sale |
 | GET | `/orders/{number}/history/`, `/orders/waiting-radar/` | Status audit, waiting stock |

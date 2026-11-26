@@ -4,10 +4,12 @@ import { Dialog } from './ui/dialog';
 import { Select } from './ui/select';
 import { Button } from './ui/button';
 import { cn, inr } from '../lib/utils';
+import { validateName, validatePhone, validatePin, validateAddress, normalizePhone, sanitizePhoneInput } from '../lib/validate';
 import { useApp } from '../context/AppContext';
 import { suggestedDiscount } from '../lib/finance';
 
 const emptyCustomer = { name: '', phone: '', address: '', area: '', city: 'Surat', pin: '' };
+const emptyErrors = { name: '', phone: '', address: '', pin: '' };
 
 export function NewOrderDialog({ open, onClose }) {
   const { state, addOrder, pushToast } = useApp();
@@ -16,12 +18,12 @@ export function NewOrderDialog({ open, onClose }) {
   const [customer, setCustomer] = useState(emptyCustomer);
   const [items, setItems] = useState([{ designId: '', qty: 1 }]);
   const [method, setMethod] = useState('Home Delivery');
-  const [expectedDate, setExpectedDate] = useState('');
   const [payMode, setPayMode] = useState('Cash');
   const [payStatus, setPayStatus] = useState('unpaid');
   const [amountOverride, setAmountOverride] = useState(null);
   const [note, setNote] = useState('');
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState(emptyErrors);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -29,12 +31,12 @@ export function NewOrderDialog({ open, onClose }) {
       setCustomer(emptyCustomer);
       setItems([{ designId: '', qty: 1 }]);
       setMethod('Home Delivery');
-      setExpectedDate('');
       setPayMode('Cash');
       setPayStatus('unpaid');
       setAmountOverride(null);
       setNote('');
       setError('');
+      setErrors(emptyErrors);
     }
   }, [open]);
 
@@ -48,22 +50,58 @@ export function NewOrderDialog({ open, onClose }) {
   const payable = amountOverride ?? Math.max(0, gross - discount);
 
   const setItem = (idx, patch) => setItems((arr) => arr.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
-  const setCust = (k) => (e) => setCustomer((c) => ({ ...c, [k]: e.target.value }));
+
+  /** Validate one customer field; returns the error string ('' when valid). */
+  const fieldError = (k, value) => {
+    switch (k) {
+      case 'name': return validateName(value);
+      case 'phone': return validatePhone(value);
+      case 'address': return validateAddress(value);
+      case 'pin': return validatePin(value);
+      default: return '';
+    }
+  };
+
+  const setCust = (k) => (e) => {
+    let value = e.target.value;
+    if (k === 'phone') value = sanitizePhoneInput(value);
+    if (k === 'pin') value = value.replace(/\D/g, '').slice(0, 6);
+    setCustomer((c) => ({ ...c, [k]: value }));
+    // re-validate live once a field has been flagged, so the error clears as the user fixes it
+    setErrors((er) => (er[k] ? { ...er, [k]: fieldError(k, value) } : er));
+  };
 
   const submit = async (e) => {
     e.preventDefault();
     setError('');
     const cleanItems = priced.filter((i) => i.designId).map((i) => ({ designId: i.designId, qty: Math.max(1, i.qty | 0) }));
-    if (!customer.name.trim() || !customer.phone.trim()) return setError('Customer name and mobile number are required.');
-    if (customer.phone.replace(/\D/g, '').length < 10) return setError('Enter a valid 10-digit mobile number.');
+
+    const nextErrors = {
+      name: fieldError('name', customer.name),
+      phone: fieldError('phone', customer.phone),
+      address: fieldError('address', customer.address),
+      pin: fieldError('pin', customer.pin),
+    };
+    setErrors(nextErrors);
+    if (Object.values(nextErrors).some(Boolean)) {
+      return setError('Please fix the highlighted customer fields.');
+    }
     if (!cleanItems.length) return setError('Add at least one design to the order.');
     if (saving) return;
+
     setSaving(true);
+    const phone = normalizePhone(customer.phone);
     const order = await addOrder({
-      customer: { ...customer, name: customer.name.trim(), phone: customer.phone.trim(), area: customer.area.trim(), address: customer.address.trim(), pin: customer.pin.trim() },
+      customer: {
+        ...customer,
+        name: customer.name.trim(),
+        phone: phone.value, // normalized +91XXXXXXXXXX
+        area: customer.area.trim(),
+        address: customer.address.trim(),
+        pin: customer.pin.trim(),
+      },
       items: cleanItems,
       method,
-      expectedDate: method === 'Home Delivery' && expectedDate ? new Date(expectedDate).toISOString() : null,
       payment: { mode: payMode, amount: payable, status: payStatus },
       note: note.trim(),
     });
@@ -73,19 +111,33 @@ export function NewOrderDialog({ open, onClose }) {
     onClose();
   };
 
+  const fieldCls = (k) => cn('field', errors[k] && 'border-danger bg-danger-soft/40');
+
   return (
     <Dialog open={open} onClose={onClose} size="lg" title="New home delivery order" subtitle="Capture customer requests — nothing enters sales until fulfilled.">
-      <form onSubmit={submit} className="space-y-5">
+      <form onSubmit={submit} className="space-y-5" noValidate>
         {/* Customer */}
         <fieldset>
           <legend className="label flex items-center gap-1.5"><UserRound size={12} strokeWidth={2.2} /> Customer</legend>
           <div className="grid gap-3 sm:grid-cols-2">
-            <input className="field" placeholder="Full name *" value={customer.name} onChange={setCust('name')} required aria-label="Customer name" />
-            <input className="field tnum" placeholder="Mobile number *" inputMode="numeric" value={customer.phone} onChange={setCust('phone')} required aria-label="Mobile number" />
-            <input className="field sm:col-span-2" placeholder="Address — building, society, landmark" value={customer.address} onChange={setCust('address')} aria-label="Address" />
+            <div>
+              <input className={fieldCls('name')} placeholder="Full name *" value={customer.name} onChange={setCust('name')} aria-label="Customer name" aria-invalid={!!errors.name} />
+              {errors.name && <p className="mt-1 text-[0.68rem] font-medium text-danger">{errors.name}</p>}
+            </div>
+            <div>
+              <input className={cn(fieldCls('phone'), 'tnum')} placeholder="Mobile number * (+91…)" inputMode="numeric" value={customer.phone} onChange={setCust('phone')} aria-label="Mobile number" aria-invalid={!!errors.phone} />
+              {errors.phone && <p className="mt-1 text-[0.68rem] font-medium text-danger">{errors.phone}</p>}
+            </div>
+            <div className="sm:col-span-2">
+              <input className={fieldCls('address')} placeholder="Address — building, society, landmark *" value={customer.address} onChange={setCust('address')} aria-label="Address" aria-invalid={!!errors.address} />
+              {errors.address && <p className="mt-1 text-[0.68rem] font-medium text-danger">{errors.address}</p>}
+            </div>
             <input className="field" placeholder="Area / locality" value={customer.area} onChange={setCust('area')} aria-label="Area" />
             <div className="grid grid-cols-2 gap-3">
-              <input className="field" placeholder="PIN code" inputMode="numeric" value={customer.pin} onChange={setCust('pin')} aria-label="PIN code" />
+              <div>
+                <input className={fieldCls('pin')} placeholder="PIN code" inputMode="numeric" value={customer.pin} onChange={setCust('pin')} aria-label="PIN code" aria-invalid={!!errors.pin} />
+                {errors.pin && <p className="mt-1 text-[0.68rem] font-medium text-danger">{errors.pin}</p>}
+              </div>
               <input className="field" placeholder="City" value={customer.city} onChange={setCust('city')} aria-label="City" />
             </div>
           </div>
@@ -124,7 +176,7 @@ export function NewOrderDialog({ open, onClose }) {
           </button>
         </fieldset>
 
-        {/* Fulfilment */}
+        {/* Fulfilment + payment */}
         <div className="grid gap-4 sm:grid-cols-2">
           <fieldset>
             <legend className="label">Fulfilment</legend>
@@ -149,9 +201,6 @@ export function NewOrderDialog({ open, onClose }) {
                 );
               })}
             </div>
-            {method === 'Home Delivery' && (
-              <input type="date" className="field mt-2" value={expectedDate} onChange={(e) => setExpectedDate(e.target.value)} aria-label="Expected delivery date" />
-            )}
           </fieldset>
           <fieldset>
             <legend className="label">Payment</legend>

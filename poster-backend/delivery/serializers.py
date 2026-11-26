@@ -1,6 +1,43 @@
+import re
+
 from rest_framework import serializers
 
 from .models import Order, OrderItem, OrderStatusHistory
+
+# Same rules as the frontend (poster-dashboard/src/lib/validate.js):
+#  - name: letters + spaces only, >= 2 chars (no digits / symbols)
+#  - phone: 10-digit Indian mobile with optional +91/91 prefix, starts 6-9;
+#    stored normalized as +91XXXXXXXXXX
+#  - PIN: optional, but if present must be a 6-digit Indian PIN (starts 1-8)
+#  - address: required for delivery orders
+PHONE_RE = re.compile(r'^(?:\+?91)?([6-9]\d{9})$')
+PIN_RE = re.compile(r'^[1-8]\d{5}$')
+
+
+def validate_name(value):
+    name = str(value or '').strip()
+    if len(name) < 2:
+        raise serializers.ValidationError('Customer name is too short.')
+    if not all(ch.isalpha() or ch == ' ' for ch in name):
+        raise serializers.ValidationError('Name can contain letters and spaces only — no numbers or symbols.')
+    return name
+
+
+def normalize_phone(value):
+    cleaned = re.sub(r'[\s-]', '', str(value or ''))
+    m = PHONE_RE.match(cleaned)
+    if not m:
+        raise serializers.ValidationError('Enter a valid 10-digit mobile number (with +91 country code), starting with 6–9.')
+    return f'+91{m.group(1)}'
+
+
+def validate_pin(value):
+    pin = str(value or '').strip()
+    if not pin:
+        return ''
+    if not PIN_RE.match(pin):
+        raise serializers.ValidationError('PIN code must be 6 digits and start with 1–8.')
+    return pin
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -72,6 +109,29 @@ class OrderCreateSerializer(serializers.Serializer):
     def validate_method(self, value):
         return self.METHOD_LOOKUP[value]
 
+    def validate(self, attrs):
+        customer = dict(attrs.get('customer') or {})
+        name = str(customer.get('name', '')).strip()
+        if not name:
+            raise serializers.ValidationError({'customer': {'name': 'Customer name is required.'}})
+        customer['name'] = validate_name(name)
+
+        phone = str(customer.get('phone', '')).strip()
+        if not phone:
+            raise serializers.ValidationError({'customer': {'phone': 'Mobile number is required.'}})
+        customer['phone'] = normalize_phone(phone)
+
+        address = str(customer.get('address', '')).strip()
+        if len(address) < 3:
+            raise serializers.ValidationError({'customer': {'address': 'Address is required — building, society or landmark.'}})
+        customer['address'] = address
+
+        customer['pin'] = validate_pin(customer.get('pin', ''))
+        customer['area'] = str(customer.get('area', '')).strip()
+        customer['city'] = str(customer.get('city', '')).strip() or 'Surat'
+        attrs['customer'] = customer
+        return attrs
+
 
 class OrderStatusSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=['request-received', 'waiting-stock', 'ready-pickup',
@@ -86,6 +146,15 @@ class OrderPatchSerializer(serializers.Serializer):
     area = serializers.CharField(max_length=80, required=False, allow_blank=True)
     city = serializers.CharField(max_length=80, required=False)
     pin = serializers.CharField(max_length=10, required=False, allow_blank=True)
+
+    def validate_customer_name(self, value):
+        return validate_name(value)
+
+    def validate_phone(self, value):
+        return normalize_phone(value)
+
+    def validate_pin(self, value):
+        return validate_pin(value)
     method = serializers.ChoiceField(choices=['home-delivery', 'pickup'], required=False)
     expected_date = serializers.DateField(required=False, allow_null=True)
     payment_mode = serializers.ChoiceField(choices=['Cash', 'UPI', 'Card', 'Bank', 'Other'], required=False)
