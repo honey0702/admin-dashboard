@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
-  Search, LayoutDashboard, Boxes, ReceiptText, Truck, Wallet, CalendarDays, BarChart3, Settings,
+  Search, LayoutDashboard, Boxes, ReceiptText, Truck, Wallet, CalendarDays, Settings,
   Package, ShoppingBag, CornerDownLeft, Plus, UserRound, Hash, ArrowRight,
 } from 'lucide-react';
 import { cn, inr } from '../lib/utils';
@@ -15,7 +15,6 @@ const PAGES = [
   { label: 'Home Delivery', hint: 'Customer orders & fulfilment', to: '/home-delivery', icon: Truck, keywords: 'orders customer delivery pickup' },
   { label: 'Expenses', hint: 'Stall spend & reports', to: '/expenses', icon: Wallet, keywords: 'costs spend money out' },
   { label: 'Daily Summary', hint: 'Closing sheet per day', to: '/daily-summary', icon: CalendarDays, keywords: 'closing sheet report eod' },
-  { label: 'Analytics', hint: 'Trends & best sellers', to: '/analytics', icon: BarChart3, keywords: 'reports charts best sellers margin' },
   { label: 'Settings', hint: 'Business, prices & rules', to: '/settings', icon: Settings, keywords: 'profile prices discount backup api' },
 ];
 

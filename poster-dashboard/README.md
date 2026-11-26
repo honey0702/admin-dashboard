@@ -1,6 +1,6 @@
 # Rang Poster Co. — Poster Business Management Dashboard
 
-A full poster-stall operations app in one calm screen: sales, inventory (with per-batch print + sleeve costing), expenses, daily closing sheets, analytics and home-delivery customer orders. Built for a stall market in Surat, India — prices in ₹, brief example bills (₹60/poster, 3 posters save ₹40, 5 save ₹50).
+A full poster-stall operations app in one calm screen: sales, inventory (with per-batch print + sleeve costing), expenses, daily closing sheets and home-delivery customer orders. Built for a stall market in Surat, India — prices in ₹, brief example bills (₹60/poster, 3 posters save ₹40, 5 save ₹50).
 
 ## Stack
 
@@ -18,13 +18,13 @@ State persists to `localStorage` (`rang-poster-co:v1`) — no backend required f
 
 ## What works today (not a static mockup)
 
-- **New Sale** (`/sales/new`) — searchable catalogue, quantity steppers with live stock caps, automatic tiered combo discounts (3+ → ₹40, 5+ → ₹50, configurable), no-discount/custom override, ₹-bill preview, Cash/UPI/Other capture. Completing a sale updates inventory, sales log, dashboard, daily summary and analytics instantly.
+- **Overview** (`/`) — the four headline KPIs, 14-day sales chart, recent sales, **best sellers by units (last 30 days)** and low-stock alerts, all on one screen.
+- **New Sale** (`/sales/new`) — searchable catalogue, quantity steppers with live stock caps, automatic tiered combo discounts (3+ → ₹40, 5+ → ₹50, configurable), no-discount/custom override, ₹-bill preview, Cash/UPI/Other capture. Completing a sale updates inventory, sales log, dashboard and daily summary instantly.
 - **Sales log** (`/sales`) — filter by range/payment/status/search, CSV export, detail dialog with line items, COGS and gross profit, cancel-with-reason (history is kept, stock is restored).
 - **Inventory** (`/inventory`) — sortable/filterable table, add designs, edit metadata, per-batch restocks (historical batch costs preserved → weighted-average COGS), damaged-stock log, archive/restore. Live stock value at cost.
 - **Home Delivery** (`/home-delivery`) — action queue, waiting-for-stock radar (which customers queued for which out-of-stock design, with tel: links), status pipeline (Request Received → Waiting for Stock → Ready for Pickup / Out for Delivery → Delivered / Not Delivered / Cancelled). Fulfilling an order **creates a real sale** — nothing pending ever counts as revenue.
 - **Expenses** (`/expenses`) — one-time vs recurring, custom categories, search/filter, CSV export, monthly breakdown. Printing/sleeve costs are deliberately excluded (they live in inventory as COGS).
 - **Daily Summary** (`/daily-summary`) — auto-generated closing sheet per date: transactions, posters, gross/discounts/net, payment-method split, COGS, expenses, gross & operating profit, 14-day ledger, CSV export.
-- **Analytics** (`/analytics`) — revenue vs expenses trend, payment-mix donut, best sellers, slowest movers, category revenue share, month break-even tracker.
 - **Settings** (`/settings`) — business profile, discount rules CRUD, categories, default price / low-stock threshold / break-even target, JSON backup download & restore, access matrix, API status panel.
 
 Global: Ctrl/⌘+K command palette (designs, sales, orders, pages, actions), low-stock + waiting-order notifications bell, sidebar break-even meter, toasts.

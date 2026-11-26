@@ -1,7 +1,7 @@
 /**
  * Pure finance & inventory selectors.
  * Everything derives from the local dataset (designs, sales, expenses) so the
- * dashboard, daily summary and analytics can never drift apart — the same
+ * dashboard, daily summary and sales views can never drift apart — the same
  * numbers flow everywhere.
  */
 

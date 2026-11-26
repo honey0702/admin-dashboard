@@ -3,6 +3,7 @@ import { IndianRupee, PiggyBank, Layers3, Boxes } from 'lucide-react';
 import { KpiCard } from '../components/KpiCard';
 import { SalesChart } from '../components/SalesChart';
 import { RecentSales } from '../components/RecentSales';
+import { BestSellers } from '../components/BestSellers';
 import { LowStock } from '../components/LowStock';
 import { useApp } from '../context/AppContext';
 import { salesInRange, expensesInRange, expenseTotal, totals, inventoryView } from '../lib/finance';
@@ -55,6 +56,7 @@ export default function Overview() {
         <SalesChart className="xl:col-span-8" />
         <div className="flex flex-col gap-5 xl:col-span-4">
           <RecentSales />
+          <BestSellers />
           <LowStock />
         </div>
       </div>
